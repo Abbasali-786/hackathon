@@ -3,4 +3,4 @@ requests
 folium
 pandas
 groq
-python-dotenv 
+python-dotenv
