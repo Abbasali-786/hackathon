@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import requests
 import time
@@ -7,8 +8,12 @@ import pandas as pd
 from streamlit.components.v1 import html
 from groq import Groq
 
-# Initialize Groq client with your API key
-client = Groq(api_key="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")
+# Use environment variables to store sensitive data
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "default_value_if_key_missing")
+ORS_API_KEY = os.getenv("ORS_API_KEY", "default_value_if_key_missing")
+
+# Initialize Groq client with the API key from the environment variable
+client = Groq(api_key=GROQ_API_KEY)
 
 # Set up the title and description for the Streamlit app
 st.set_page_config(page_title="Gaia: Women Safety App", page_icon="🤖", layout="centered")
@@ -21,16 +26,18 @@ def get_response(user_input):
         
     st.session_state['messages'].append({"role": "user", "content": user_input})
     
-    # Call Groq API to get the AI's response
-    chat_completion = client.chat.completions.create(
-        messages=st.session_state['messages'],
-        model="llama3-8b-8192"  # Specify model you want to use from Groq
-    )
-    
-    ai_message = chat_completion.choices[0].message.content
-    st.session_state['messages'].append({"role": "assistant", "content": ai_message})
-    
-    return ai_message
+    try:
+        # Call Groq API to get the AI's response
+        chat_completion = client.chat.completions.create(
+            messages=st.session_state['messages'],
+            model="llama3-8b-8192"  # Specify model you want to use from Groq
+        )
+        ai_message = chat_completion.choices[0].message.content
+        st.session_state['messages'].append({"role": "assistant", "content": ai_message})
+        return ai_message
+    except Exception as e:
+        st.error(f"Failed to get AI response: {e}")
+        return None
 
 # Sidebar for navigation
 st.sidebar.title('Features')
@@ -70,7 +77,8 @@ elif page == "AI-Powered Support":
 
     if user_input:
         ai_response = get_response(user_input)
-        st.markdown(f"**Gaia (AI):** {ai_response}")
+        if ai_response:
+            st.markdown(f"**Gaia (AI):** {ai_response}")
 
 # Emergency Call Page
 elif page == "Emergency Call":
@@ -143,30 +151,37 @@ elif page == "ORS Route":
 
     if st.button("Calculate Route"):
         if start_lat and start_lon and end_lat and end_lon:
-            # OpenRouteService API key
-            api_key = '5b3ce3597851110001cf6248678e77a7fc474afbbb5ec203d721079c'
+            # OpenRouteService API key from environment variable
+            api_key = ORS_API_KEY
             start_point = f'{start_lon},{start_lat}'  # ORS expects lon, lat
             end_point = f'{end_lon},{end_lat}'
-            
-            # API request to OpenRouteService
-            url = f'https://api.openrouteservice.org/v2/directions/driving-car?api_key={api_key}&start={start_point}&end={end_point}'
-            response = requests.get(url)
 
-            if response.status_code == 200:
-                data = response.json()
-                # Extract the route information
-                route = data['features'][0]['geometry']['coordinates']
-                route_map = folium.Map(location=[start_lat, start_lon], zoom_start=12)
+            try:
+                # API request to OpenRouteService
+                url = f'https://api.openrouteservice.org/v2/directions/driving-car?api_key={api_key}&start={start_point}&end={end_point}'
+                response = requests.get(url)
+                response.raise_for_status()  # Check for HTTP errors
 
-                # Plot the route on the map
-                folium.PolyLine(locations=[(lat, lon) for lon, lat in route], color='blue', weight=5).add_to(route_map)
+                # Check if response is successful
+                if response.status_code == 200:
+                    data = response.json()
+                    # Extract the route information
+                    route = data['features'][0]['geometry']['coordinates']
+                    route_map = folium.Map(location=[start_lat, start_lon], zoom_start=12)
 
-                # Display the route map in the app
-                st.subheader("Calculated Route")
-                route_html = route_map._repr_html_()
-                html(route_html, height=500)
-            else:
-                st.error(f"Error: {response.status_code}")
+                    # Plot the route on the map
+                    folium.PolyLine(locations=[(lat, lon) for lon, lat in route], color='blue', weight=5).add_to(route_map)
+
+                    # Display the route map in the app
+                    st.subheader("Calculated Route")
+                    route_html = route_map._repr_html_()
+                    html(route_html, height=500)
+                else:
+                    st.error(f"Error: {response.status_code}")
+            except requests.exceptions.HTTPError as err:
+                st.error(f"HTTP error occurred: {err}")
+            except Exception as err:
+                st.error(f"An error occurred: {err}")
         else:
             st.error("Please enter valid coordinates for both start and end locations.")
 
@@ -182,10 +197,4 @@ st.markdown("""
     }
     .css-15zrgwt {
         font-size: 1.1rem;
-        line-height: 1.5;
-    }
-    .css-10hldgk {
-        font-size: 1rem;
-    }
-    </style>
-""", unsafe_allow_html=True)
+        line-height: 1.
