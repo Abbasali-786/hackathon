@@ -197,4 +197,10 @@ st.markdown("""
     }
     .css-15zrgwt {
         font-size: 1.1rem;
-        line-height: 1.
+        line-height: 1.5;
+    }
+    .css-10hldgk {
+        font-size: 1rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
