@@ -74,7 +74,7 @@ if page == "Personal Information":
 
 # AI-Powered Support Page
 elif page == "AI-Powered Support":
-    st.header("Simulate a Call with Gaia AI")
+    st.header("Chat with Gaia AI")
     user_input = st.text_input("Tell Gaia how you're feeling:", "")
 
     if user_input:
