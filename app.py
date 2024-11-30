@@ -1,23 +1,14 @@
-import os
-from dotenv import load_dotenv
-from groq import Groq
-import requests
-import folium
-import pandas as pd
 import streamlit as st
+import requests
 import time
-from streamlit.components.v1 import html
+import folium
 from folium import plugins
+import pandas as pd
+from streamlit.components.v1 import html
+from groq import Groq
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Initialize Groq client with your API key from environment variables
-groq_api_key = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=groq_api_key)
-
-# OpenRouteService API key from environment variables
-ors_api_key = os.getenv("ORS_API_KEY")
+# Initialize Groq client with your API key
+client = Groq(api_key="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")
 
 # Set up the title and description for the Streamlit app
 st.set_page_config(page_title="Gaia: Women Safety App", page_icon="🤖", layout="centered")
@@ -74,7 +65,7 @@ if page == "Personal Information":
 
 # AI-Powered Support Page
 elif page == "AI-Powered Support":
-    st.header("Chat with Gaia AI")
+    st.header("Simulate a Call with Gaia AI")
     user_input = st.text_input("Tell Gaia how you're feeling:", "")
 
     if user_input:
@@ -152,11 +143,13 @@ elif page == "ORS Route":
 
     if st.button("Calculate Route"):
         if start_lat and start_lon and end_lat and end_lon:
+            # OpenRouteService API key
+            api_key = '5b3ce3597851110001cf6248678e77a7fc474afbbb5ec203d721079c'
             start_point = f'{start_lon},{start_lat}'  # ORS expects lon, lat
             end_point = f'{end_lon},{end_lat}'
             
             # API request to OpenRouteService
-            url = f'https://api.openrouteservice.org/v2/directions/driving-car?api_key={ors_api_key}&start={start_point}&end={end_point}'
+            url = f'https://api.openrouteservice.org/v2/directions/driving-car?api_key={api_key}&start={start_point}&end={end_point}'
             response = requests.get(url)
 
             if response.status_code == 200:
@@ -188,4 +181,11 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(0,0,0,0.1);
     }
     .css-15zrgwt {
-        font-size: 1
+        font-size: 1.1rem;
+        line-height: 1.5;
+    }
+    .css-10hldgk {
+        font-size: 1rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
