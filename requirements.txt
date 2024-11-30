@@ -1,6 +1,0 @@
-streamlit
-requests
-folium
-pandas
-groq
-python-dotenv
