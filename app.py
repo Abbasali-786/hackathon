@@ -24,7 +24,7 @@ def get_response(user_input):
     # Call Groq API to get the AI's response
     chat_completion = client.chat.completions.create(
         messages=st.session_state['messages'],
-        model="llama3-8b-8192"  # Specify model you want to use from Groq
+        model="gemma2-9b-it"
     )
     
     ai_message = chat_completion.choices[0].message.content
